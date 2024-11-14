@@ -104,6 +104,11 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: '#1e1e1e', // Fondo oscuro
     borderRadius: 10,
+    borderWidth: 1, // Agrega borde
+    borderColor: '#555', // Color del borde
+    marginVertical: 10, // Espaciado entre cada habit tracker
+    alignSelf: 'center', // Centra horizontalmente
+    width: '90%', // Ajusta el ancho para que no llegue a los bordes de la pantalla
   },
   header: {
     flexDirection: 'row',
