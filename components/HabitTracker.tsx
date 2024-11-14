@@ -1,34 +1,66 @@
-import React from 'react';
-import { View, StyleSheet, Text, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { View, StyleSheet, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 // Configuración inicial
 const startDate = new Date(2024, 6, 1); // 1 de julio de 2024
 const today = new Date();
-const timeDiff = Math.abs(startDate.getTime() - today.getTime());
-const totalDays = Math.ceil(timeDiff / (1000 * 3600 * 24)); // Total de días entre startDate y hoy
 const rows = 7; // Número de filas (alto)
-const daysOfWeek = ['L', 'M', 'M', 'J', 'V', 'S', 'D']; // Letras de los días de la semana, fija en cada fila
+const daysOfWeek = ['D', 'L', 'M', 'M', 'J', 'V', 'S']; // Letras de los días de la semana, correcta posición
 
-// Función para obtener la letra y número de cada día a partir de una fecha
+// Función para obtener la etiqueta y la fecha de cada día en la cuadrícula
 function getDayLabelAndNumber(rowIndex: number, colIndex: number) {
   const currentDate = new Date(startDate);
   const dayIndex = colIndex * rows + rowIndex; // Índice del día en la cuadrícula
   currentDate.setDate(startDate.getDate() + dayIndex); // Avanza 'dayIndex' días desde la fecha inicial
 
-  const dayLabel = daysOfWeek[rowIndex]; // Usa el índice de la fila para obtener el día fijo
+  const dayLabel = daysOfWeek[currentDate.getDay()]; // Obtiene el día de la semana real
   const dayNumber = currentDate.getDate(); // Obtiene el número de día del mes
   
-  return `${dayLabel}${dayNumber}`;
+  return { label: `${dayLabel}${dayNumber}`, date: currentDate };
 }
 
 export default function HabitTracker() {
+  const [markedDays, setMarkedDays] = useState<string[]>([]);
+  const [isIconPressed, setIsIconPressed] = useState(false);
+
+  // Función para marcar el día actual
+  const markToday = () => {
+    const todayLabel = `${daysOfWeek[today.getDay()]}${today.getDate()}`;
+    console.log("Día actual:", todayLabel);
+
+    setMarkedDays((prev) => {
+      if (prev.includes(todayLabel)) {
+        console.log(`Desmarcando el día actual: ${todayLabel}`);
+        return prev.filter((day) => day !== todayLabel);
+      } else {
+        console.log(`Marcando el día actual: ${todayLabel}`);
+        return [...prev, todayLabel];
+      }
+    });
+
+    setIsIconPressed((prev) => !prev);
+  };
+
   // Calcula el número de columnas necesarias
-  const columns = Math.ceil(totalDays / rows);
+  const columns = Math.ceil((today.getTime() - startDate.getTime()) / (1000 * 3600 * 24) / rows);
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Ir al gym</Text>
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>Ir al gym</Text>
+          <Text style={styles.subtitle}>Ir al gym</Text>
+        </View>
+        <TouchableOpacity
+          style={[
+            styles.iconContainer,
+            isIconPressed ? styles.iconPressed : styles.iconUnpressed,
+          ]}
+          onPress={markToday}
+        >
+          <Ionicons name="checkmark" size={24} color="#fff" />
+        </TouchableOpacity>
       </View>
       <ScrollView 
         horizontal 
@@ -40,17 +72,21 @@ export default function HabitTracker() {
             <View key={rowIndex} style={styles.row}>
               {Array.from({ length: columns }, (_, colIndex) => {
                 const dayIndex = colIndex * rows + rowIndex; // Calcula el índice de día en base a la fila y columna
-                if (dayIndex >= totalDays) return null; // Evita celdas extra si excede el total de días
+                const { label } = getDayLabelAndNumber(rowIndex, colIndex);
+                const isMarked = markedDays.includes(label);
+
+                console.log(`Día ${label}: ${isMarked ? 'Marcado' : 'No marcado'}`);
+
                 return (
                   <View
                     key={`${rowIndex}-${colIndex}`}
                     style={[
                       styles.day,
-                      // Aquí puedes agregar `completedDays` para personalizar los días completados si lo necesitas
+                      isMarked && styles.markedDay,
                     ]}
                   >
                     <Text style={styles.dayText}>
-                      {getDayLabelAndNumber(rowIndex, colIndex)} {/* Muestra la letra y número del día */}
+                      {label} {/* Muestra la letra y número del día */}
                     </Text>
                   </View>
                 );
@@ -72,12 +108,33 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between', // Alinea el título y el ícono de extremo a extremo
     marginBottom: 20,
   },
+  titleContainer: {
+    flex: 1,
+  },
   title: {
-    fontSize: 18,
+    fontSize: 28,
     color: '#fff',
     fontWeight: 'bold',
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#aaa',
+  },
+  iconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 8, // Bordes redondeados
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  iconUnpressed: {
+    backgroundColor: '#b34771', // Color rosado oscuro cuando no está presionado
+  },
+  iconPressed: {
+    backgroundColor: '#ff69b4', // Color rosado claro cuando se presiona
   },
   gridContainer: {
     flexDirection: 'column',
@@ -93,6 +150,9 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  markedDay: {
+    backgroundColor: '#ff69b4', // Fondo rosado para los días marcados
   },
   dayText: {
     color: '#fff',
