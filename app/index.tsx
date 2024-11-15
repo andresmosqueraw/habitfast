@@ -29,33 +29,25 @@ export default function Index() {
   };
 
   const addOrEditHabit = () => {
+    const updatedHabits = [...habits];
     if (editIndex !== null) {
-      // Edit habit
-      const updatedHabits = [...habits];
       updatedHabits[editIndex] = { title: newHabitTitle, description: newHabitDescription };
-      setHabits(updatedHabits);
     } else {
-      // Add new habit
-      const newHabit: Habit = { title: newHabitTitle, description: newHabitDescription };
-      setHabits([...habits, newHabit]);
+      updatedHabits.push({ title: newHabitTitle, description: newHabitDescription });
     }
+    setHabits(updatedHabits);
     setModalVisible(false);
   };
 
   const deleteHabit = () => {
     if (editIndex !== null) {
-      Alert.alert(
-        "Eliminar Hábito",
-        "¿Estás seguro de que deseas eliminar este hábito?",
-        [
-          { text: "Cancelar", style: "cancel" },
-          { text: "Eliminar", style: "destructive", onPress: () => {
-            const updatedHabits = habits.filter((_, index) => index !== editIndex);
-            setHabits(updatedHabits);
-            setModalVisible(false);
-          }}
-        ]
-      );
+      Alert.alert("Eliminar Hábito", "¿Estás seguro de que deseas eliminar este hábito?", [
+        { text: "Cancelar", style: "cancel" },
+        { text: "Eliminar", style: "destructive", onPress: () => {
+          setHabits(habits.filter((_, index) => index !== editIndex));
+          setModalVisible(false);
+        }},
+      ]);
     }
   };
 
@@ -74,7 +66,7 @@ export default function Index() {
             key={index} 
             title={habit.title} 
             description={habit.description} 
-            onEdit={() => openModal(index)} // Pasar la función onEdit
+            onEdit={() => openModal(index)}
           />
         ))}
       </ScrollView>
@@ -141,7 +133,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Fondo oscuro transparente
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
     width: '80%',
