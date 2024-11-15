@@ -23,9 +23,10 @@ function getDayLabelAndNumber(rowIndex: number, colIndex: number) {
 interface HabitTrackerProps {
   title: string;
   description: string;
+  onEdit: () => void; // Nueva prop para manejar la edición
 }
 
-export default function HabitTracker({ title, description }: HabitTrackerProps) {
+export default function HabitTracker({ title, description, onEdit }: HabitTrackerProps) {
   const [markedDays, setMarkedDays] = useState<string[]>([]);
   const [isIconPressed, setIsIconPressed] = useState(false);
 
@@ -57,6 +58,12 @@ export default function HabitTracker({ title, description }: HabitTrackerProps) 
           <Text style={styles.title}>{title || 'Título del Hábito'}</Text>
           <Text style={styles.subtitle}>{description || 'Descripción del Hábito'}</Text>
         </View>
+        <TouchableOpacity
+          style={styles.editIcon} // Ícono para abrir el modal de edición
+          onPress={onEdit}
+        >
+          <Ionicons name="pencil" size={20} color="#fff" />
+        </TouchableOpacity>
         <TouchableOpacity
           style={[
             styles.iconContainer,
@@ -106,20 +113,20 @@ export default function HabitTracker({ title, description }: HabitTrackerProps) 
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
+    padding: 8,
     backgroundColor: '#1e1e1e', // Fondo oscuro
     borderRadius: 10,
     borderWidth: 1, // Agrega borde
     borderColor: '#555', // Color del borde
     marginVertical: 10, // Espaciado entre cada habit tracker
     alignSelf: 'center', // Centra horizontalmente
-    width: '90%', // Ajusta el ancho para que no llegue a los bordes de la pantalla
+    width: '95%', // Ajusta el ancho para que no llegue a los bordes de la pantalla
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between', // Alinea el título y el ícono de extremo a extremo
-    marginBottom: 20,
+    marginBottom: 10,
   },
   titleContainer: {
     flex: 1,
@@ -132,6 +139,12 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 14,
     color: '#aaa',
+  },
+  editIcon: {
+    marginRight: 10,
+    backgroundColor: '#ff69b4',
+    padding: 6,
+    borderRadius: 20,
   },
   iconContainer: {
     width: 48,
@@ -153,8 +166,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   day: {
-    width: 20,
-    height: 20,
+    width: 16,
+    height: 16,
     margin: 2,
     backgroundColor: '#3a3a3a',
     borderRadius: 4,
@@ -166,7 +179,7 @@ const styles = StyleSheet.create({
   },
   dayText: {
     color: '#fff',
-    fontSize: 8,
+    fontSize: 5,
     fontWeight: 'bold',
   },
 });

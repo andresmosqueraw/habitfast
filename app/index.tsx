@@ -70,9 +70,12 @@ export default function Index() {
       
       <ScrollView contentContainerStyle={{ paddingVertical: 20 }} showsVerticalScrollIndicator={false}>
         {habits.map((habit, index) => (
-          <TouchableOpacity key={index} onPress={() => openModal(index)}>
-            <HabitTracker title={habit.title} description={habit.description} />
-          </TouchableOpacity>
+          <HabitTracker 
+            key={index} 
+            title={habit.title} 
+            description={habit.description} 
+            onEdit={() => openModal(index)} // Pasar la función onEdit
+          />
         ))}
       </ScrollView>
 
