@@ -1,45 +1,85 @@
 import React, { useState } from 'react';
-import { ScrollView, View, TouchableOpacity, Text, StyleSheet, Modal, TextInput, Button } from "react-native";
+import { ScrollView, View, TouchableOpacity, Text, StyleSheet, Modal, TextInput, Button, Alert } from "react-native";
 import { Ionicons } from '@expo/vector-icons';
 import HabitTracker from '@/components/HabitTracker';
 
+interface Habit {
+  title: string;
+  description: string;
+}
+
 export default function Index() {
-  const [habits, setHabits] = useState<React.ReactElement[]>([]);
+  const [habits, setHabits] = useState<Habit[]>([]);
   const [isModalVisible, setModalVisible] = useState(false);
   const [newHabitTitle, setNewHabitTitle] = useState('');
   const [newHabitDescription, setNewHabitDescription] = useState('');
+  const [editIndex, setEditIndex] = useState<number | null>(null);
 
-  const openModal = () => {
-    setNewHabitTitle('');
-    setNewHabitDescription('');
+  const openModal = (index: number | null = null) => {
+    if (index !== null) {
+      setNewHabitTitle(habits[index].title);
+      setNewHabitDescription(habits[index].description);
+      setEditIndex(index);
+    } else {
+      setNewHabitTitle('');
+      setNewHabitDescription('');
+      setEditIndex(null);
+    }
     setModalVisible(true);
   };
 
-  const addHabit = () => {
-    setHabits([
-      ...habits,
-      <HabitTracker key={habits.length} title={newHabitTitle} description={newHabitDescription} />,
-    ]);
+  const addOrEditHabit = () => {
+    if (editIndex !== null) {
+      // Edit habit
+      const updatedHabits = [...habits];
+      updatedHabits[editIndex] = { title: newHabitTitle, description: newHabitDescription };
+      setHabits(updatedHabits);
+    } else {
+      // Add new habit
+      const newHabit: Habit = { title: newHabitTitle, description: newHabitDescription };
+      setHabits([...habits, newHabit]);
+    }
     setModalVisible(false);
+  };
+
+  const deleteHabit = () => {
+    if (editIndex !== null) {
+      Alert.alert(
+        "Eliminar Hábito",
+        "¿Estás seguro de que deseas eliminar este hábito?",
+        [
+          { text: "Cancelar", style: "cancel" },
+          { text: "Eliminar", style: "destructive", onPress: () => {
+            const updatedHabits = habits.filter((_, index) => index !== editIndex);
+            setHabits(updatedHabits);
+            setModalVisible(false);
+          }}
+        ]
+      );
+    }
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerText}>Mis Hábitos</Text>
-        <TouchableOpacity onPress={openModal} style={styles.addButton}>
+        <Text style={styles.headerText}>HabitFast</Text>
+        <TouchableOpacity onPress={() => openModal()} style={styles.addButton}>
           <Ionicons name="add" size={24} color="#fff" />
         </TouchableOpacity>
       </View>
       
       <ScrollView contentContainerStyle={{ paddingVertical: 20 }} showsVerticalScrollIndicator={false}>
-        {habits}
+        {habits.map((habit, index) => (
+          <TouchableOpacity key={index} onPress={() => openModal(index)}>
+            <HabitTracker title={habit.title} description={habit.description} />
+          </TouchableOpacity>
+        ))}
       </ScrollView>
 
       <Modal visible={isModalVisible} animationType="slide" transparent>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Nuevo Hábito</Text>
+            <Text style={styles.modalTitle}>{editIndex !== null ? 'Editar Hábito' : 'Nuevo Hábito'}</Text>
             <TextInput
               style={styles.input}
               placeholder="Título del Hábito"
@@ -56,7 +96,10 @@ export default function Index() {
             />
             <View style={styles.modalButtons}>
               <Button title="Cancelar" color="#999" onPress={() => setModalVisible(false)} />
-              <Button title="Guardar" color="#ff69b4" onPress={addHabit} />
+              {editIndex !== null && (
+                <Button title="Eliminar" color="#d9534f" onPress={deleteHabit} />
+              )}
+              <Button title="Guardar" color="#ff69b4" onPress={addOrEditHabit} />
             </View>
           </View>
         </View>
