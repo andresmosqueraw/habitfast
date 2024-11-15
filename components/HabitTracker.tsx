@@ -20,7 +20,12 @@ function getDayLabelAndNumber(rowIndex: number, colIndex: number) {
   return { label: `${dayLabel}${dayNumber}`, date: currentDate };
 }
 
-export default function HabitTracker() {
+interface HabitTrackerProps {
+  title: string;
+  description: string;
+}
+
+export default function HabitTracker({ title, description }: HabitTrackerProps) {
   const [markedDays, setMarkedDays] = useState<string[]>([]);
   const [isIconPressed, setIsIconPressed] = useState(false);
 
@@ -49,8 +54,8 @@ export default function HabitTracker() {
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.titleContainer}>
-          <Text style={styles.title}>Ir al gym</Text>
-          <Text style={styles.subtitle}>Ir al gym</Text>
+          <Text style={styles.title}>{title || 'Título del Hábito'}</Text>
+          <Text style={styles.subtitle}>{description || 'Descripción del Hábito'}</Text>
         </View>
         <TouchableOpacity
           style={[
