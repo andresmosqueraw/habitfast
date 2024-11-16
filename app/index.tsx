@@ -3,9 +3,15 @@ import { ScrollView, View, TouchableOpacity, Text, StyleSheet, Modal, TextInput,
 import { Ionicons } from '@expo/vector-icons';
 import HabitTracker from '@/components/HabitTracker';
 
+const colors = [
+  '#ff69b4', '#b34771', '#ff4500', '#4682b4', '#32cd32', '#9370db',
+  '#ffd700', '#708090', '#8b4513', '#00ced1',
+];
+
 interface Habit {
   title: string;
   description: string;
+  color: string;
 }
 
 export default function Index() {
@@ -13,41 +19,60 @@ export default function Index() {
   const [isModalVisible, setModalVisible] = useState(false);
   const [newHabitTitle, setNewHabitTitle] = useState('');
   const [newHabitDescription, setNewHabitDescription] = useState('');
+  const [selectedColor, setSelectedColor] = useState(colors[0]);
   const [editIndex, setEditIndex] = useState<number | null>(null);
 
   const openModal = (index: number | null = null) => {
     if (index !== null) {
-      setNewHabitTitle(habits[index].title);
-      setNewHabitDescription(habits[index].description);
+      const habit = habits[index];
+      setNewHabitTitle(habit.title);
+      setNewHabitDescription(habit.description);
+      setSelectedColor(habit.color);
       setEditIndex(index);
     } else {
       setNewHabitTitle('');
       setNewHabitDescription('');
+      setSelectedColor(colors[0]);
       setEditIndex(null);
     }
     setModalVisible(true);
   };
 
   const addOrEditHabit = () => {
-    const updatedHabits = [...habits];
     if (editIndex !== null) {
-      updatedHabits[editIndex] = { title: newHabitTitle, description: newHabitDescription };
+      const updatedHabits = [...habits];
+      updatedHabits[editIndex] = {
+        title: newHabitTitle,
+        description: newHabitDescription,
+        color: selectedColor,
+      };
+      setHabits(updatedHabits);
     } else {
-      updatedHabits.push({ title: newHabitTitle, description: newHabitDescription });
+      setHabits([
+        ...habits,
+        { title: newHabitTitle, description: newHabitDescription, color: selectedColor },
+      ]);
     }
-    setHabits(updatedHabits);
     setModalVisible(false);
   };
 
   const deleteHabit = () => {
     if (editIndex !== null) {
-      Alert.alert("Eliminar Hábito", "¿Estás seguro de que deseas eliminar este hábito?", [
-        { text: "Cancelar", style: "cancel" },
-        { text: "Eliminar", style: "destructive", onPress: () => {
-          setHabits(habits.filter((_, index) => index !== editIndex));
-          setModalVisible(false);
-        }},
-      ]);
+      Alert.alert(
+        "Eliminar Hábito",
+        "¿Estás seguro de que deseas eliminar este hábito?",
+        [
+          { text: "Cancelar", style: "cancel" },
+          {
+            text: "Eliminar",
+            style: "destructive",
+            onPress: () => {
+              setHabits(habits.filter((_, index) => index !== editIndex));
+              setModalVisible(false);
+            },
+          },
+        ]
+      );
     }
   };
 
@@ -56,15 +81,15 @@ export default function Index() {
       <View style={styles.header}>
         <Text style={styles.headerText}>HabitFast</Text>
         <TouchableOpacity onPress={() => openModal()} style={styles.addButton}>
-          <Ionicons name="add" size={24} color="#fff" />
+          <Ionicons name="add" size={24} color="#000" />
         </TouchableOpacity>
       </View>
-
+      
       {habits.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Text style={styles.motivationalText}>¡Empieza a construir tus hábitos hoy!</Text>
-          <TouchableOpacity onPress={() => openModal()} style={styles.centerAddButton}>
-            <Text style={styles.centerAddButtonText}>Agregar Hábito</Text>
+          <Text style={styles.motivationalText}>¡Comienza a construir tus hábitos hoy!</Text>
+          <TouchableOpacity onPress={() => openModal()} style={styles.addButtonLarge}>
+            <Text style={styles.addButtonText}>Agregar Hábito</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -74,6 +99,7 @@ export default function Index() {
               key={index} 
               title={habit.title} 
               description={habit.description} 
+              color={habit.color} 
               onEdit={() => openModal(index)}
             />
           ))}
@@ -98,6 +124,19 @@ export default function Index() {
               value={newHabitDescription}
               onChangeText={setNewHabitDescription}
             />
+            <Text style={styles.colorPickerLabel}>Selecciona un color:</Text>
+            <View style={styles.colorPicker}>
+              {colors.map((color) => (
+                <TouchableOpacity
+                  key={color}
+                  style={[
+                    styles.colorOption,
+                    { backgroundColor: color, borderWidth: selectedColor === color ? 2 : 0 },
+                  ]}
+                  onPress={() => setSelectedColor(color)}
+                />
+              ))}
+            </View>
             <View style={styles.modalButtons}>
               <Button title="Cancelar" color="#999" onPress={() => setModalVisible(false)} />
               {editIndex !== null && (
@@ -113,82 +152,20 @@ export default function Index() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#1e1e1e',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    paddingTop: 60,
-    backgroundColor: '#2a2a2a',
-  },
-  headerText: {
-    color: '#fff',
-    fontSize: 28,
-    fontWeight: 'bold',
-  },
-  addButton: {
-    backgroundColor: '#ff69b4',
-    padding: 12,
-    borderRadius: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  motivationalText: {
-    fontSize: 18,
-    color: '#aaa',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  centerAddButton: {
-    backgroundColor: '#ff69b4',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 20,
-  },
-  centerAddButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  modalContent: {
-    width: '80%',
-    padding: 20,
-    backgroundColor: '#2a2a2a',
-    borderRadius: 10,
-  },
-  modalTitle: {
-    fontSize: 20,
-    color: '#fff',
-    marginBottom: 20,
-    textAlign: 'center',
-    fontWeight: 'bold',
-  },
-  input: {
-    backgroundColor: '#444',
-    color: '#fff',
-    padding: 10,
-    borderRadius: 5,
-    marginBottom: 15,
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: 10,
-  },
+  container: { flex: 1, backgroundColor: '#000' },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 5, paddingTop: 60, backgroundColor: '#000' },
+  headerText: { color: '#fff', fontSize: 28, fontWeight: 'bold' },
+  addButton: { backgroundColor: '#fff', padding: 12, borderRadius: 50, justifyContent: 'center', alignItems: 'center' },
+  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  motivationalText: { color: '#aaa', fontSize: 18, marginBottom: 20, textAlign: 'center' },
+  addButtonLarge: { backgroundColor: '#fff', padding: 15, borderRadius: 8 },
+  addButtonText: { color: '#000', fontSize: 18, fontWeight: 'bold' },
+  modalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' },
+  modalContent: { width: '80%', padding: 20, backgroundColor: '#2a2a2a', borderRadius: 10 },
+  modalTitle: { fontSize: 20, color: '#fff', marginBottom: 20, textAlign: 'center', fontWeight: 'bold' },
+  input: { backgroundColor: '#444', color: '#fff', padding: 10, borderRadius: 5, marginBottom: 15 },
+  colorPickerLabel: { color: '#fff', marginBottom: 10 },
+  colorPicker: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 15 },
+  colorOption: { width: 30, height: 30, borderRadius: 15, margin: 5 },
+  modalButtons: { flexDirection: 'row', justifyContent: 'space-around', marginTop: 10 },
 });

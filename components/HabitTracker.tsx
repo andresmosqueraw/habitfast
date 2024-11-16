@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { View, StyleSheet, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-const startDate = new Date(2024, 6, 1);
+// Configuración inicial
+const startDate = new Date(2024, 3, 1); // 1 de abril de 2024
 const today = new Date();
 const rows = 7;
 const daysOfWeek = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
 
+// Función para obtener la etiqueta y la fecha de cada día en la cuadrícula
 function getDayLabelAndNumber(rowIndex: number, colIndex: number) {
   const currentDate = new Date(startDate);
   const dayIndex = colIndex * rows + rowIndex;
@@ -21,10 +23,11 @@ function getDayLabelAndNumber(rowIndex: number, colIndex: number) {
 interface HabitTrackerProps {
   title: string;
   description: string;
+  color: string;
   onEdit: () => void;
 }
 
-export default function HabitTracker({ title, description, onEdit }: HabitTrackerProps) {
+export default function HabitTracker({ title, description, color, onEdit }: HabitTrackerProps) {
   const [markedDays, setMarkedDays] = useState<string[]>([]);
   const [isIconPressed, setIsIconPressed] = useState(false);
 
@@ -39,19 +42,19 @@ export default function HabitTracker({ title, description, onEdit }: HabitTracke
   const columns = Math.ceil((today.getTime() - startDate.getTime()) / (1000 * 3600 * 24) / rows);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container]}>
       <View style={styles.header}>
         <View style={styles.titleContainer}>
           <Text style={styles.title}>{title || 'Título del Hábito'}</Text>
           <Text style={styles.subtitle}>{description || 'Descripción del Hábito'}</Text>
         </View>
-        <TouchableOpacity style={styles.editIcon} onPress={onEdit}>
+        <TouchableOpacity style={[styles.editIcon, { backgroundColor: color }]} onPress={onEdit}>
           <Ionicons name="pencil" size={20} color="#fff" />
         </TouchableOpacity>
         <TouchableOpacity
           style={[
             styles.iconContainer,
-            isIconPressed ? styles.iconPressed : styles.iconUnpressed,
+            { backgroundColor: isIconPressed ? color : `${color}99` }, // Botón más oscuro cuando no está presionado
           ]}
           onPress={markToday}
         >
@@ -76,12 +79,14 @@ export default function HabitTracker({ title, description, onEdit }: HabitTracke
                     key={`${rowIndex}-${colIndex}`}
                     style={[
                       styles.day,
-                      isMarked ? styles.markedDay : isFuture ? styles.futureDay : styles.unmarkedDay,
+                      isMarked
+                        ? { backgroundColor: color }
+                        : isFuture
+                        ? { backgroundColor: `${color}15` }
+                        : { backgroundColor: `${color}35` }, // Fondo más oscuro para días no seleccionados
                     ]}
                   >
-                    <Text style={styles.dayText}>
-                      {label}
-                    </Text>
+                    <Text style={styles.dayText}>{label}</Text>
                   </View>
                 );
               })}
@@ -96,10 +101,9 @@ export default function HabitTracker({ title, description, onEdit }: HabitTracke
 const styles = StyleSheet.create({
   container: {
     padding: 8,
-    backgroundColor: '#1e1e1e',
+    backgroundColor: '#181818',
     borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#555',
+    borderWidth: 0,
     marginVertical: 10,
     alignSelf: 'center',
     width: '95%',
@@ -114,7 +118,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    fontSize: 28,
+    fontSize: 20,
     color: '#fff',
     fontWeight: 'bold',
   },
@@ -124,7 +128,6 @@ const styles = StyleSheet.create({
   },
   editIcon: {
     marginRight: 10,
-    backgroundColor: '#ff69b4',
     padding: 6,
     borderRadius: 20,
   },
@@ -135,12 +138,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  iconUnpressed: {
-    backgroundColor: '#b34771',
-  },
-  iconPressed: {
-    backgroundColor: '#ff69b4',
-  },
   gridContainer: {
     flexDirection: 'column',
   },
@@ -150,19 +147,10 @@ const styles = StyleSheet.create({
   day: {
     width: 16,
     height: 16,
-    margin: 2,
+    margin: 1,
     borderRadius: 4,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  markedDay: {
-    backgroundColor: '#ff69b4', // Fondo rosado claro para los días marcados
-  },
-  unmarkedDay: {
-    backgroundColor: '#663344', // Fondo rosado muy oscuro para los días no marcados
-  },
-  futureDay: {
-    backgroundColor: '#3a1e2a', // Fondo casi negro para los días futuros
   },
   dayText: {
     color: '#fff',
