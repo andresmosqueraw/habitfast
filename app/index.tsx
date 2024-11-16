@@ -59,17 +59,26 @@ export default function Index() {
           <Ionicons name="add" size={24} color="#fff" />
         </TouchableOpacity>
       </View>
-      
-      <ScrollView contentContainerStyle={{ paddingVertical: 20 }} showsVerticalScrollIndicator={false}>
-        {habits.map((habit, index) => (
-          <HabitTracker 
-            key={index} 
-            title={habit.title} 
-            description={habit.description} 
-            onEdit={() => openModal(index)}
-          />
-        ))}
-      </ScrollView>
+
+      {habits.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.motivationalText}>¡Empieza a construir tus hábitos hoy!</Text>
+          <TouchableOpacity onPress={() => openModal()} style={styles.centerAddButton}>
+            <Text style={styles.centerAddButtonText}>Agregar Hábito</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <ScrollView contentContainerStyle={{ paddingVertical: 20 }} showsVerticalScrollIndicator={false}>
+          {habits.map((habit, index) => (
+            <HabitTracker 
+              key={index} 
+              title={habit.title} 
+              description={habit.description} 
+              onEdit={() => openModal(index)}
+            />
+          ))}
+        </ScrollView>
+      )}
 
       <Modal visible={isModalVisible} animationType="slide" transparent>
         <View style={styles.modalContainer}>
@@ -128,6 +137,28 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  motivationalText: {
+    fontSize: 18,
+    color: '#aaa',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  centerAddButton: {
+    backgroundColor: '#ff69b4',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+  },
+  centerAddButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   modalContainer: {
     flex: 1,
