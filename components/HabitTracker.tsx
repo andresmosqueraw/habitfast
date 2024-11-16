@@ -2,21 +2,21 @@ import React, { useState } from 'react';
 import { View, StyleSheet, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-const startDate = new Date(2024, 6, 1); // 1 de julio de 2024
+const startDate = new Date(2024, 6, 1);
 const today = new Date();
 const rows = 7;
 const daysOfWeek = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
 
-const getDayLabelAndNumber = (rowIndex: number, colIndex: number) => {
+function getDayLabelAndNumber(rowIndex: number, colIndex: number) {
   const currentDate = new Date(startDate);
   const dayIndex = colIndex * rows + rowIndex;
   currentDate.setDate(startDate.getDate() + dayIndex);
 
   const dayLabel = daysOfWeek[currentDate.getDay()];
   const dayNumber = currentDate.getDate();
-
+  
   return { label: `${dayLabel}${dayNumber}`, date: currentDate };
-};
+}
 
 interface HabitTrackerProps {
   title: string;
@@ -49,23 +49,39 @@ export default function HabitTracker({ title, description, onEdit }: HabitTracke
           <Ionicons name="pencil" size={20} color="#fff" />
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.iconContainer, isIconPressed ? styles.iconPressed : styles.iconUnpressed]}
+          style={[
+            styles.iconContainer,
+            isIconPressed ? styles.iconPressed : styles.iconUnpressed,
+          ]}
           onPress={markToday}
         >
           <Ionicons name="checkmark" size={24} color="#fff" />
         </TouchableOpacity>
       </View>
-      <ScrollView horizontal contentOffset={{ x: columns * 24 - 300, y: 0 }} showsHorizontalScrollIndicator={false}>
+      <ScrollView 
+        horizontal 
+        contentOffset={{ x: columns * 24 - 300, y: 0 }}
+        showsHorizontalScrollIndicator={false}
+      >
         <View style={styles.gridContainer}>
           {Array.from({ length: rows }, (_, rowIndex) => (
             <View key={rowIndex} style={styles.row}>
               {Array.from({ length: columns }, (_, colIndex) => {
-                const { label } = getDayLabelAndNumber(rowIndex, colIndex);
+                const { label, date } = getDayLabelAndNumber(rowIndex, colIndex);
                 const isMarked = markedDays.includes(label);
+                const isFuture = date > today;
 
                 return (
-                  <View key={`${rowIndex}-${colIndex}`} style={[styles.day, isMarked && styles.markedDay]}>
-                    <Text style={styles.dayText}>{label}</Text>
+                  <View
+                    key={`${rowIndex}-${colIndex}`}
+                    style={[
+                      styles.day,
+                      isMarked ? styles.markedDay : isFuture ? styles.futureDay : styles.unmarkedDay,
+                    ]}
+                  >
+                    <Text style={styles.dayText}>
+                      {label}
+                    </Text>
                   </View>
                 );
               })}
@@ -98,7 +114,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    fontSize: 20,
+    fontSize: 28,
     color: '#fff',
     fontWeight: 'bold',
   },
@@ -108,7 +124,7 @@ const styles = StyleSheet.create({
   },
   editIcon: {
     marginRight: 10,
-    backgroundColor: '#b34771',
+    backgroundColor: '#ff69b4',
     padding: 6,
     borderRadius: 20,
   },
@@ -135,13 +151,18 @@ const styles = StyleSheet.create({
     width: 16,
     height: 16,
     margin: 2,
-    backgroundColor: '#3a3a3a',
     borderRadius: 4,
     justifyContent: 'center',
     alignItems: 'center',
   },
   markedDay: {
-    backgroundColor: '#ff69b4',
+    backgroundColor: '#ff69b4', // Fondo rosado claro para los días marcados
+  },
+  unmarkedDay: {
+    backgroundColor: '#663344', // Fondo rosado muy oscuro para los días no marcados
+  },
+  futureDay: {
+    backgroundColor: '#3a1e2a', // Fondo casi negro para los días futuros
   },
   dayText: {
     color: '#fff',
