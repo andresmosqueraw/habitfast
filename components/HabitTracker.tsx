@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { View, StyleSheet, Text, ScrollView, TouchableOpacity, LayoutChangeEvent } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import ConfettiCannon from 'react-native-confetti-cannon';
+import { Audio } from 'expo-av';
 
 // Configuración inicial
 const startDate = new Date(2024, 3, 1); // 1 de abril de 2024
@@ -32,13 +33,27 @@ export default function HabitTracker({ title, description, color, onEdit }: Habi
   const confettiRef = useRef<any>(null);
   const [confettiVisible, setConfettiVisible] = useState(false);
   const [confettiPosition, setConfettiPosition] = useState({ x: 0, y: 0 });
+  const soundRef = useRef<Audio.Sound | null>(null);
 
-  const markToday = () => {
+  // Cargar el sonido de celebración
+  const playCelebrationSound = async () => {
+    if (!soundRef.current) {
+      const { sound } = await Audio.Sound.createAsync(
+        require('../assets/audio/cheer.mp3') // Asegúrate de que este archivo exista en tu proyecto
+      );
+      soundRef.current = sound;
+    }
+    await soundRef.current?.replayAsync();
+  };
+
+  // Manejo al marcar el hábito
+  const markToday = async () => {
     const todayLabel = `${daysOfWeek[today.getDay()]}${today.getDate()}`;
     const isMarking = !markedDays.includes(todayLabel);
 
     if (isMarking) {
       setConfettiVisible(true);
+      playCelebrationSound(); // Reproducir el sonido
       setTimeout(() => {
         if (confettiRef.current) confettiRef.current.start();
         setTimeout(() => setConfettiVisible(false), 500); // Ocultar contenedor después del confetti
@@ -118,8 +133,8 @@ export default function HabitTracker({ title, description, color, onEdit }: Habi
           origin={confettiPosition}
           autoStart={false}
           fadeOut
-          fallSpeed={3000} // Reducir la velocidad de caída para limitar la altura
-          explosionSpeed={3000} // Disminuir la fuerza del disparo
+          fallSpeed={3000}
+          explosionSpeed={3000}
           ref={confettiRef}
         />
       )}
