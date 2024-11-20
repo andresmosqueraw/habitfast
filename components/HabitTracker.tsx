@@ -48,6 +48,7 @@ export default function HabitTracker({ title, description, color, onEdit }: Habi
   const [markedDays, setMarkedDays] = useState<string[]>([]);
   const [isIconPressed, setIsIconPressed] = useState(false);
   const confettiRef = useRef<any>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
   const [confettiVisible, setConfettiVisible] = useState(false);
   const [confettiPosition, setConfettiPosition] = useState({ x: 0, y: 0 });
   const soundRef = useRef<Audio.Sound | null>(null);
@@ -82,6 +83,13 @@ export default function HabitTracker({ title, description, color, onEdit }: Habi
 
     saveMarkedDays();
   }, [markedDays, storageKey]);
+
+  // Desplazar al final de la cuadrícula al montar
+  useEffect(() => {
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollToEnd({ animated: false });
+    }
+  }, [markedDays]); // Dependencia para asegurarse de que el desplazamiento se realiza al actualizar los días
 
   // Cargar el sonido de celebración
   const playCelebrationSound = async () => {
@@ -143,9 +151,15 @@ export default function HabitTracker({ title, description, color, onEdit }: Habi
         </TouchableOpacity>
       </View>
       <ScrollView 
+        ref={scrollViewRef}
         horizontal 
-        contentOffset={{ x: columns * 24 - 300, y: 0 }}
+        contentContainerStyle={{ flexGrow: 1 }}
         showsHorizontalScrollIndicator={false}
+        onContentSizeChange={() => {
+          if (scrollViewRef.current) {
+            scrollViewRef.current.scrollToEnd({ animated: false });
+          }
+        }}
       >
         <View style={styles.gridContainer}>
           {Array.from({ length: rows }, (_, rowIndex) => (
