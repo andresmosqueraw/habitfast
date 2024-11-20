@@ -9,6 +9,7 @@ const startDate = new Date(2024, 3, 1); // 1 de abril de 2024
 const today = new Date();
 const rows = 7;
 const daysOfWeek = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+const months = ['EN', 'FB', 'MR', 'AB', 'MY', 'JN', 'JL', 'AG', 'SP', 'OC', 'NV', 'DC']; // Abreviaturas de meses
 
 // Función para obtener la etiqueta y la fecha de cada día en la cuadrícula
 function getDayLabelAndNumber(rowIndex: number, colIndex: number) {
@@ -16,8 +17,23 @@ function getDayLabelAndNumber(rowIndex: number, colIndex: number) {
   const dayIndex = colIndex * rows + rowIndex;
   currentDate.setDate(startDate.getDate() + dayIndex);
 
-  const dayLabel = `${daysOfWeek[currentDate.getDay()]}${currentDate.getDate()}`;
-  return { label: dayLabel, date: currentDate };
+  const dayLabel = daysOfWeek[currentDate.getDay()];
+  const monthLabel = months[currentDate.getMonth()];
+  const yearLabel = currentDate.getFullYear().toString().slice(-2);
+  const dayNumber = currentDate.getDate();
+
+  const label = `${monthLabel}${dayLabel}${dayNumber}-${yearLabel}`;
+  return { label, date: currentDate };
+}
+
+// Función para obtener la etiqueta del día de hoy
+function getTodayLabel() {
+  const dayLabel = daysOfWeek[today.getDay()];
+  const monthLabel = months[today.getMonth()];
+  const yearLabel = today.getFullYear().toString().slice(-2);
+  const dayNumber = today.getDate();
+
+  return `${monthLabel}${dayLabel}${dayNumber}-${yearLabel}`;
 }
 
 interface HabitTrackerProps {
@@ -48,7 +64,7 @@ export default function HabitTracker({ title, description, color, onEdit }: Habi
 
   // Manejo al marcar el hábito
   const markToday = async () => {
-    const todayLabel = `${daysOfWeek[today.getDay()]}${today.getDate()}`;
+    const todayLabel = getTodayLabel();
     const isMarking = !markedDays.includes(todayLabel);
 
     if (isMarking) {
@@ -129,7 +145,7 @@ export default function HabitTracker({ title, description, color, onEdit }: Habi
       </ScrollView>
       {confettiVisible && (
         <ConfettiCannon
-          count={100} // Reducir el número de partículas
+          count={100}
           origin={confettiPosition}
           autoStart={false}
           fadeOut
@@ -189,8 +205,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   day: {
-    width: 16,
-    height: 16,
+    width: 32,
+    height: 32  ,
     margin: 1,
     borderRadius: 4,
     justifyContent: 'center',
