@@ -1,8 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, StyleSheet, Text, ScrollView, TouchableOpacity, LayoutChangeEvent } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import ConfettiCannon from 'react-native-confetti-cannon';
 import { Audio } from 'expo-av';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Configuración inicial
 const startDate = new Date(2024, 3, 1); // 1 de abril de 2024
@@ -50,6 +51,37 @@ export default function HabitTracker({ title, description, color, onEdit }: Habi
   const [confettiVisible, setConfettiVisible] = useState(false);
   const [confettiPosition, setConfettiPosition] = useState({ x: 0, y: 0 });
   const soundRef = useRef<Audio.Sound | null>(null);
+
+  const storageKey = `markedDays_${title}`;
+
+  // Cargar los días marcados al iniciar
+  useEffect(() => {
+    const loadMarkedDays = async () => {
+      try {
+        const savedDays = await AsyncStorage.getItem(storageKey);
+        if (savedDays) {
+          setMarkedDays(JSON.parse(savedDays));
+        }
+      } catch (error) {
+        console.error('Error loading marked days:', error);
+      }
+    };
+
+    loadMarkedDays();
+  }, [storageKey]);
+
+  // Guardar los días marcados cuando cambien
+  useEffect(() => {
+    const saveMarkedDays = async () => {
+      try {
+        await AsyncStorage.setItem(storageKey, JSON.stringify(markedDays));
+      } catch (error) {
+        console.error('Error saving marked days:', error);
+      }
+    };
+
+    saveMarkedDays();
+  }, [markedDays, storageKey]);
 
   // Cargar el sonido de celebración
   const playCelebrationSound = async () => {
@@ -206,7 +238,7 @@ const styles = StyleSheet.create({
   },
   day: {
     width: 32,
-    height: 32  ,
+    height: 32,
     margin: 1,
     borderRadius: 4,
     justifyContent: 'center',
