@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, Text, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, StyleSheet, Text, ScrollView, TouchableOpacity, LayoutChangeEvent } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import ConfettiCannon from 'react-native-confetti-cannon';
 
 // Configuración inicial
 const startDate = new Date(2024, 3, 1); // 1 de abril de 2024
@@ -14,10 +15,8 @@ function getDayLabelAndNumber(rowIndex: number, colIndex: number) {
   const dayIndex = colIndex * rows + rowIndex;
   currentDate.setDate(startDate.getDate() + dayIndex);
 
-  const dayLabel = daysOfWeek[currentDate.getDay()];
-  const dayNumber = currentDate.getDate();
-  
-  return { label: `${dayLabel}${dayNumber}`, date: currentDate };
+  const dayLabel = `${daysOfWeek[currentDate.getDay()]}${currentDate.getDate()}`;
+  return { label: dayLabel, date: currentDate };
 }
 
 interface HabitTrackerProps {
@@ -30,13 +29,31 @@ interface HabitTrackerProps {
 export default function HabitTracker({ title, description, color, onEdit }: HabitTrackerProps) {
   const [markedDays, setMarkedDays] = useState<string[]>([]);
   const [isIconPressed, setIsIconPressed] = useState(false);
+  const confettiRef = useRef<any>(null);
+  const [confettiVisible, setConfettiVisible] = useState(false);
+  const [confettiPosition, setConfettiPosition] = useState({ x: 0, y: 0 });
 
   const markToday = () => {
     const todayLabel = `${daysOfWeek[today.getDay()]}${today.getDate()}`;
+    const isMarking = !markedDays.includes(todayLabel);
+
+    if (isMarking) {
+      setConfettiVisible(true);
+      setTimeout(() => {
+        if (confettiRef.current) confettiRef.current.start();
+        setTimeout(() => setConfettiVisible(false), 500); // Ocultar contenedor después del confetti
+      }, 0);
+    }
+
     setMarkedDays((prev) =>
-      prev.includes(todayLabel) ? prev.filter((day) => day !== todayLabel) : [...prev, todayLabel]
+      isMarking ? [...prev, todayLabel] : prev.filter((day) => day !== todayLabel)
     );
-    setIsIconPressed(!isIconPressed);
+    setIsIconPressed(isMarking);
+  };
+
+  const handleIconLayout = (event: LayoutChangeEvent) => {
+    const { x, y } = event.nativeEvent.layout;
+    setConfettiPosition({ x: x + 24, y: y + 24 }); // Ajuste para centrar en el botón
   };
 
   const columns = Math.ceil((today.getTime() - startDate.getTime()) / (1000 * 3600 * 24) / rows);
@@ -54,9 +71,10 @@ export default function HabitTracker({ title, description, color, onEdit }: Habi
         <TouchableOpacity
           style={[
             styles.iconContainer,
-            { backgroundColor: isIconPressed ? color : `${color}99` }, // Botón más oscuro cuando no está presionado
+            { backgroundColor: isIconPressed ? color : `${color}99` },
           ]}
           onPress={markToday}
+          onLayout={handleIconLayout}
         >
           <Ionicons name="checkmark" size={24} color="#fff" />
         </TouchableOpacity>
@@ -83,7 +101,7 @@ export default function HabitTracker({ title, description, color, onEdit }: Habi
                         ? { backgroundColor: color }
                         : isFuture
                         ? { backgroundColor: `${color}15` }
-                        : { backgroundColor: `${color}35` }, // Fondo más oscuro para días no seleccionados
+                        : { backgroundColor: `${color}35` },
                     ]}
                   >
                     <Text style={styles.dayText}>{label}</Text>
@@ -94,6 +112,17 @@ export default function HabitTracker({ title, description, color, onEdit }: Habi
           ))}
         </View>
       </ScrollView>
+      {confettiVisible && (
+        <ConfettiCannon
+          count={100} // Reducir el número de partículas
+          origin={confettiPosition}
+          autoStart={false}
+          fadeOut
+          fallSpeed={3000} // Reducir la velocidad de caída para limitar la altura
+          explosionSpeed={3000} // Disminuir la fuerza del disparo
+          ref={confettiRef}
+        />
+      )}
     </View>
   );
 }
