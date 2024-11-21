@@ -27,11 +27,14 @@ const colors = [
   '#00ced1',
 ];
 
+const daysOfWeek = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+
 interface Habit {
   title: string;
   description: string;
   color: string;
-  reminderTime?: string; // Nueva propiedad para el recordatorio
+  reminderTime?: string;
+  days?: string[]; // Días seleccionados para cumplir el hábito
 }
 
 export default function Index() {
@@ -42,6 +45,7 @@ export default function Index() {
   const [newHabitDescription, setNewHabitDescription] = useState('');
   const [selectedColor, setSelectedColor] = useState(colors[0]);
   const [selectedTime, setSelectedTime] = useState<string | undefined>(undefined);
+  const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [editIndex, setEditIndex] = useState<number | null>(null);
 
   const openModal = (index: number | null = null) => {
@@ -51,12 +55,14 @@ export default function Index() {
       setNewHabitDescription(habit.description);
       setSelectedColor(habit.color);
       setSelectedTime(habit.reminderTime);
+      setSelectedDays(habit.days || []);
       setEditIndex(index);
     } else {
       setNewHabitTitle('');
       setNewHabitDescription('');
       setSelectedColor(colors[0]);
       setSelectedTime(undefined);
+      setSelectedDays([]);
       setEditIndex(null);
     }
     setModalVisible(true);
@@ -70,6 +76,7 @@ export default function Index() {
         description: newHabitDescription,
         color: selectedColor,
         reminderTime: selectedTime,
+        days: selectedDays,
       };
       setHabits(updatedHabits);
     } else {
@@ -80,6 +87,7 @@ export default function Index() {
           description: newHabitDescription,
           color: selectedColor,
           reminderTime: selectedTime,
+          days: selectedDays,
         },
       ]);
     }
@@ -100,6 +108,12 @@ export default function Index() {
         },
       ]);
     }
+  };
+
+  const toggleDaySelection = (day: string) => {
+    setSelectedDays((prev) =>
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
+    );
   };
 
   const handleTimeConfirm = (time: Date) => {
@@ -178,6 +192,21 @@ export default function Index() {
                 />
               ))}
             </View>
+            <Text style={styles.daysLabel}>Días para cumplir el hábito:</Text>
+            <View style={styles.daysContainer}>
+              {daysOfWeek.map((day) => (
+                <TouchableOpacity
+                  key={day}
+                  style={[
+                    styles.dayOption,
+                    { backgroundColor: selectedDays.includes(day) ? '#ff69b4' : '#333' },
+                  ]}
+                  onPress={() => toggleDaySelection(day)}
+                >
+                  <Text style={styles.dayOptionText}>{day}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
             <View style={styles.modalButtons}>
               <TouchableOpacity style={styles.button} onPress={() => setModalVisible(false)}>
                 <Text style={styles.buttonText}>Cancelar</Text>
@@ -206,6 +235,7 @@ export default function Index() {
 }
 
 const styles = StyleSheet.create({
+  // Estilos actualizados
   container: { flex: 1, backgroundColor: '#000' },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 10, paddingTop: 60, backgroundColor: '#000' },
   headerText: { color: '#fff', fontSize: 28, fontWeight: 'bold' },
@@ -217,12 +247,23 @@ const styles = StyleSheet.create({
   modalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.8)' },
   modalContent: { width: '80%', padding: 20, backgroundColor: '#000', borderRadius: 30, borderColor: '#2d2d2d', borderWidth: 1 },
   modalTitle: { fontSize: 20, color: '#fff', marginBottom: 20, textAlign: 'center', fontWeight: 'bold' },
-  input: { backgroundColor: '#000', color: '#fff', padding: 10, borderRadius: 12, marginBottom: 15, borderWidth: 1 },
-  timeButton: { marginBottom: 15, padding: 12, backgroundColor: '#555', borderRadius: 8 },
+  input: {
+    backgroundColor: '#000',
+    color: '#fff',
+    padding: 10,
+    borderRadius: 12,
+    marginBottom: 15,
+    borderWidth: 1,
+  },
+  timeButton: { padding: 12, backgroundColor: '#555', borderRadius: 8 },
   timeButtonText: { color: '#fff', textAlign: 'center', fontSize: 16 },
   colorPickerLabel: { color: '#fff', marginBottom: 10 },
   colorPicker: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 15 },
   colorOption: { width: 30, height: 30, borderRadius: 15, margin: 5 },
+  daysLabel: { color: '#fff', marginBottom: 10, fontSize: 16, fontWeight: 'bold' },
+  daysContainer: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 15 },
+  dayOption: { padding: 10, margin: 5, borderRadius: 8 },
+  dayOptionText: { color: '#fff', fontSize: 14, textAlign: 'center' },
   modalButtons: { flexDirection: 'row', justifyContent: 'space-around', marginTop: 10 },
   button: { backgroundColor: '#fff', padding: 10, borderRadius: 8, marginHorizontal: 5 },
   buttonText: { color: '#000', fontSize: 16, fontWeight: 'bold', textAlign: 'center' },
