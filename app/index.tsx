@@ -174,25 +174,7 @@ export default function Index() {
               value={newHabitDescription}
               onChangeText={setNewHabitDescription}
             />
-            <TouchableOpacity onPress={() => setTimePickerVisible(true)} style={styles.timeButton}>
-              <Text style={styles.timeButtonText}>
-                {selectedTime ? `Recordatorio: ${selectedTime}` : 'Agregar recordatorio de hora'}
-              </Text>
-            </TouchableOpacity>
-            <Text style={styles.colorPickerLabel}>Selecciona un color:</Text>
-            <View style={styles.colorPicker}>
-              {colors.map((color) => (
-                <TouchableOpacity
-                  key={color}
-                  style={[
-                    styles.colorOption,
-                    { backgroundColor: color, borderWidth: selectedColor === color ? 2 : 0 },
-                  ]}
-                  onPress={() => setSelectedColor(color)}
-                />
-              ))}
-            </View>
-            <Text style={styles.daysLabel}>Días para cumplir el hábito:</Text>
+            <Text style={styles.daysLabel}>Lo voy hacer</Text>
             <View style={styles.daysContainer}>
               {daysOfWeek.map((day) => (
                 <TouchableOpacity
@@ -205,6 +187,24 @@ export default function Index() {
                 >
                   <Text style={styles.dayOptionText}>{day}</Text>
                 </TouchableOpacity>
+              ))}
+            </View>
+            <TouchableOpacity onPress={() => setTimePickerVisible(true)} style={styles.timeButton}>
+              <Text style={styles.timeButtonText}>
+                {selectedTime ? `Recordatorio: ${selectedTime}` : 'Agregar recordatorio de hora'}
+              </Text>
+            </TouchableOpacity>
+            <Text style={styles.colorPickerLabel}>Selecciona un color</Text>
+            <View style={styles.colorPicker}>
+              {colors.map((color) => (
+                <TouchableOpacity
+                  key={color}
+                  style={[
+                    styles.colorOption,
+                    { backgroundColor: color, borderWidth: selectedColor === color ? 2 : 0 },
+                  ]}
+                  onPress={() => setSelectedColor(color)}
+                />
               ))}
             </View>
             <View style={styles.modalButtons}>
@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
   },
   timeButton: { padding: 12, backgroundColor: '#555', borderRadius: 8 },
   timeButtonText: { color: '#fff', textAlign: 'center', fontSize: 16 },
-  colorPickerLabel: { color: '#fff', marginBottom: 10 },
+  colorPickerLabel: { color: '#fff', marginBottom: 10, marginTop: 15, fontSize: 16, fontWeight: 'bold' },
   colorPicker: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 15 },
   colorOption: { width: 30, height: 30, borderRadius: 15, margin: 5 },
   daysLabel: { color: '#fff', marginBottom: 10, fontSize: 16, fontWeight: 'bold' },
