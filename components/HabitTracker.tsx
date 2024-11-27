@@ -125,6 +125,23 @@ export default function HabitTracker({ title, description, color, onEdit }: Habi
     );
   };
 
+  const getMarkedDates = () => {
+    const marked: { [key: string]: { marked: boolean; dotColor: string } } = {};
+    markedDays.forEach((day) => {
+      const dateParts = day.match(/([A-Z]{2})([A-Z]{1})(\d+)-(\d+)/);
+      if (dateParts) {
+        const [_, month, dayLabel, dayNumber, year] = dateParts;
+        const dateString = new Date(
+          `20${year}-${months.indexOf(month) + 1}-${dayNumber}`
+        )
+          .toISOString()
+          .split("T")[0];
+        marked[dateString] = { marked: true, dotColor: color };
+      }
+    });
+    return marked;
+  };
+
   const columns = Math.ceil((today.getTime() - startDate.getTime()) / (1000 * 3600 * 24) / rows);
 
   return (
@@ -206,13 +223,7 @@ export default function HabitTracker({ title, description, color, onEdit }: Habi
           <View style={styles.calendarContainer}>
             <Calendar
               onDayPress={handleDayPress}
-              markedDates={markedDays.reduce(
-                (acc, day) => ({
-                  ...acc,
-                  [day]: { marked: true, dotColor: color },
-                }),
-                {}
-              )}
+              markedDates={getMarkedDates()} // Aplica dots a los días marcados
               maxDate={today.toISOString().split('T')[0]} // Restringe fechas futuras
               theme={{
                 backgroundColor: '#181818',
