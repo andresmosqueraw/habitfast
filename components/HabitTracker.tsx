@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, StyleSheet, Text, ScrollView, TouchableOpacity, LayoutChangeEvent } from 'react-native';
+import { View, StyleSheet, Text, ScrollView, TouchableOpacity, LayoutChangeEvent, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import ConfettiCannon from 'react-native-confetti-cannon';
 import { Audio } from 'expo-av';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Calendar } from 'react-native-calendars'; // Librería de calendario
 
 // Configuración inicial
 const startDate = new Date(2024, 3, 1); // 1 de abril de 2024
@@ -46,6 +47,7 @@ interface HabitTrackerProps {
 
 export default function HabitTracker({ title, description, color, onEdit }: HabitTrackerProps) {
   const [markedDays, setMarkedDays] = useState<string[]>([]);
+  const [calendarVisible, setCalendarVisible] = useState(false); // Para mostrar el calendario
   const [isIconPressed, setIsIconPressed] = useState(false);
   const confettiRef = useRef<any>(null);
   const scrollViewRef = useRef<ScrollView>(null);
@@ -127,6 +129,19 @@ export default function HabitTracker({ title, description, color, onEdit }: Habi
     setConfettiPosition({ x: x + 24, y: y + 24 }); // Ajuste para centrar en el botón
   };
 
+  const toggleCalendar = () => {
+    setCalendarVisible(!calendarVisible);
+  };
+
+  const handleDayPress = (day: { dateString: any; }) => {
+    const { dateString } = day;
+    setMarkedDays((prev) =>
+      prev.includes(dateString)
+        ? prev.filter((d) => d !== dateString)
+        : [...prev, dateString]
+    );
+  };
+
   const columns = Math.ceil((today.getTime() - startDate.getTime()) / (1000 * 3600 * 24) / rows);
 
   return (
@@ -136,6 +151,9 @@ export default function HabitTracker({ title, description, color, onEdit }: Habi
           <Text style={styles.title}>{title || 'Título del Hábito'}</Text>
           <Text style={styles.subtitle}>{description || 'Descripción del Hábito'}</Text>
         </View>
+        <TouchableOpacity style={[styles.calendarIcon, { backgroundColor: color }]} onPress={toggleCalendar}>
+          <Ionicons name="calendar" size={20} color="#fff" />
+        </TouchableOpacity>
         <TouchableOpacity style={[styles.editIcon, { backgroundColor: color }]} onPress={onEdit}>
           <Ionicons name="pencil" size={20} color="#fff" />
         </TouchableOpacity>
@@ -150,9 +168,9 @@ export default function HabitTracker({ title, description, color, onEdit }: Habi
           <Ionicons name="checkmark" size={24} color="#fff" />
         </TouchableOpacity>
       </View>
-      <ScrollView 
+      <ScrollView
         ref={scrollViewRef}
-        horizontal 
+        horizontal
         contentContainerStyle={{ flexGrow: 1 }}
         showsHorizontalScrollIndicator={false}
         onContentSizeChange={() => {
@@ -200,6 +218,38 @@ export default function HabitTracker({ title, description, color, onEdit }: Habi
           ref={confettiRef}
         />
       )}
+      {/* Modal del calendario */}
+      <Modal visible={calendarVisible} transparent animationType="slide">
+        <View style={styles.modalContainer}>
+          <View style={styles.calendarContainer}>
+            <Calendar
+              onDayPress={handleDayPress}
+              markedDates={markedDays.reduce(
+                (acc, day) => ({
+                  ...acc,
+                  [day]: { selected: true, selectedColor: color },
+                }),
+                {}
+              )}
+              theme={{
+                backgroundColor: '#181818',
+                calendarBackground: '#181818',
+                textSectionTitleColor: '#fff',
+                dayTextColor: '#fff',
+                selectedDayBackgroundColor: color,
+                selectedDayTextColor: '#fff',
+                todayTextColor: color,
+                arrowColor: '#fff',
+                monthTextColor: '#fff',
+                textDisabledColor: '#555',
+              }}
+            />
+            <TouchableOpacity onPress={toggleCalendar} style={styles.closeButton}>
+              <Text style={styles.closeButtonText}>Cerrar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -237,6 +287,11 @@ const styles = StyleSheet.create({
     padding: 6,
     borderRadius: 20,
   },
+  calendarIcon: {
+    marginRight: 10,
+    padding: 6,
+    borderRadius: 20,
+  },
   iconContainer: {
     width: 48,
     height: 48,
@@ -262,5 +317,28 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 5,
     fontWeight: 'bold',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+  },
+  calendarContainer: {
+    width: '90%',
+    backgroundColor: '#181818',
+    borderRadius: 10,
+    padding: 10,
+  },
+  closeButton: {
+    marginTop: 10,
+    padding: 10,
+    backgroundColor: '#555',
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  closeButtonText: {
+    color: '#fff',
+    fontSize: 16,
   },
 });
