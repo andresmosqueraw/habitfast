@@ -4,38 +4,26 @@ import { Ionicons } from '@expo/vector-icons';
 import ConfettiCannon from 'react-native-confetti-cannon';
 import { Audio } from 'expo-av';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Calendar } from 'react-native-calendars'; // Librería de calendario
+import { Calendar } from 'react-native-calendars';
 
-// Configuración inicial
 const startDate = new Date(2024, 3, 1); // 1 de abril de 2024
 const today = new Date();
 const rows = 7;
 const daysOfWeek = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
-const months = ['EN', 'FB', 'MR', 'AB', 'MY', 'JN', 'JL', 'AG', 'SP', 'OC', 'NV', 'DC']; // Abreviaturas de meses
+const months = ['EN', 'FB', 'MR', 'AB', 'MY', 'JN', 'JL', 'AG', 'SP', 'OC', 'NV', 'DC'];
 
-// Función para obtener la etiqueta y la fecha de cada día en la cuadrícula
-function getDayLabelAndNumber(rowIndex: number, colIndex: number) {
-  const currentDate = new Date(startDate);
-  const dayIndex = colIndex * rows + rowIndex;
-  currentDate.setDate(startDate.getDate() + dayIndex);
-
-  const dayLabel = daysOfWeek[currentDate.getDay()];
-  const monthLabel = months[currentDate.getMonth()];
-  const yearLabel = currentDate.getFullYear().toString().slice(-2);
-  const dayNumber = currentDate.getDate();
+function getDayLabelAndNumber(date: Date) {
+  const dayLabel = daysOfWeek[date.getDay()];
+  const monthLabel = months[date.getMonth()];
+  const yearLabel = date.getFullYear().toString().slice(-2);
+  const dayNumber = date.getDate();
 
   const label = `${monthLabel}${dayLabel}${dayNumber}-${yearLabel}`;
-  return { label, date: currentDate };
+  return { label, date };
 }
 
-// Función para obtener la etiqueta del día de hoy
 function getTodayLabel() {
-  const dayLabel = daysOfWeek[today.getDay()];
-  const monthLabel = months[today.getMonth()];
-  const yearLabel = today.getFullYear().toString().slice(-2);
-  const dayNumber = today.getDate();
-
-  return `${monthLabel}${dayLabel}${dayNumber}-${yearLabel}`;
+  return getDayLabelAndNumber(today).label;
 }
 
 interface HabitTrackerProps {
@@ -47,7 +35,7 @@ interface HabitTrackerProps {
 
 export default function HabitTracker({ title, description, color, onEdit }: HabitTrackerProps) {
   const [markedDays, setMarkedDays] = useState<string[]>([]);
-  const [calendarVisible, setCalendarVisible] = useState(false); // Para mostrar el calendario
+  const [calendarVisible, setCalendarVisible] = useState(false);
   const [isIconPressed, setIsIconPressed] = useState(false);
   const confettiRef = useRef<any>(null);
   const scrollViewRef = useRef<ScrollView>(null);
@@ -57,7 +45,6 @@ export default function HabitTracker({ title, description, color, onEdit }: Habi
 
   const storageKey = `markedDays_${title}`;
 
-  // Cargar los días marcados al iniciar
   useEffect(() => {
     const loadMarkedDays = async () => {
       try {
@@ -73,7 +60,6 @@ export default function HabitTracker({ title, description, color, onEdit }: Habi
     loadMarkedDays();
   }, [storageKey]);
 
-  // Guardar los días marcados cuando cambien
   useEffect(() => {
     const saveMarkedDays = async () => {
       try {
@@ -86,35 +72,32 @@ export default function HabitTracker({ title, description, color, onEdit }: Habi
     saveMarkedDays();
   }, [markedDays, storageKey]);
 
-  // Desplazar al final de la cuadrícula al montar
   useEffect(() => {
     if (scrollViewRef.current) {
       scrollViewRef.current.scrollToEnd({ animated: false });
     }
-  }, [markedDays]); // Dependencia para asegurarse de que el desplazamiento se realiza al actualizar los días
+  }, [markedDays]);
 
-  // Cargar el sonido de celebración
   const playCelebrationSound = async () => {
     if (!soundRef.current) {
       const { sound } = await Audio.Sound.createAsync(
-        require('../assets/audio/cheer.mp3') // Asegúrate de que este archivo exista en tu proyecto
+        require('../assets/audio/cheer.mp3')
       );
       soundRef.current = sound;
     }
     await soundRef.current?.replayAsync();
   };
 
-  // Manejo al marcar el hábito
   const markToday = async () => {
     const todayLabel = getTodayLabel();
     const isMarking = !markedDays.includes(todayLabel);
 
     if (isMarking) {
       setConfettiVisible(true);
-      playCelebrationSound(); // Reproducir el sonido
+      playCelebrationSound();
       setTimeout(() => {
         if (confettiRef.current) confettiRef.current.start();
-        setTimeout(() => setConfettiVisible(false), 500); // Ocultar contenedor después del confetti
+        setTimeout(() => setConfettiVisible(false), 500);
       }, 0);
     }
 
@@ -126,19 +109,19 @@ export default function HabitTracker({ title, description, color, onEdit }: Habi
 
   const handleIconLayout = (event: LayoutChangeEvent) => {
     const { x, y } = event.nativeEvent.layout;
-    setConfettiPosition({ x: x + 24, y: y + 24 }); // Ajuste para centrar en el botón
+    setConfettiPosition({ x: x + 24, y: y + 24 });
   };
 
   const toggleCalendar = () => {
     setCalendarVisible(!calendarVisible);
   };
 
-  const handleDayPress = (day: { dateString: any; }) => {
-    const { dateString } = day;
+  const handleDayPress = (day: { dateString: string }) => {
+    const date = new Date(`${day.dateString}T00:00:00`);
+    const { label } = getDayLabelAndNumber(date);
+
     setMarkedDays((prev) =>
-      prev.includes(dateString)
-        ? prev.filter((d) => d !== dateString)
-        : [...prev, dateString]
+      prev.includes(label) ? prev.filter((d) => d !== label) : [...prev, label]
     );
   };
 
@@ -183,7 +166,7 @@ export default function HabitTracker({ title, description, color, onEdit }: Habi
           {Array.from({ length: rows }, (_, rowIndex) => (
             <View key={rowIndex} style={styles.row}>
               {Array.from({ length: columns }, (_, colIndex) => {
-                const { label, date } = getDayLabelAndNumber(rowIndex, colIndex);
+                const { label, date } = getDayLabelAndNumber(new Date(startDate.getTime() + ((colIndex * rows + rowIndex) * 24 * 60 * 60 * 1000)));
                 const isMarked = markedDays.includes(label);
                 const isFuture = date > today;
 
@@ -218,7 +201,6 @@ export default function HabitTracker({ title, description, color, onEdit }: Habi
           ref={confettiRef}
         />
       )}
-      {/* Modal del calendario */}
       <Modal visible={calendarVisible} transparent animationType="slide">
         <View style={styles.modalContainer}>
           <View style={styles.calendarContainer}>
@@ -227,7 +209,7 @@ export default function HabitTracker({ title, description, color, onEdit }: Habi
               markedDates={markedDays.reduce(
                 (acc, day) => ({
                   ...acc,
-                  [day]: { selected: true, selectedColor: color },
+                  [day]: { marked: true, dotColor: color },
                 }),
                 {}
               )}
@@ -333,12 +315,12 @@ const styles = StyleSheet.create({
   closeButton: {
     marginTop: 10,
     padding: 10,
-    backgroundColor: '#555',
+    backgroundColor: '#fff',
     borderRadius: 8,
     alignItems: 'center',
   },
   closeButtonText: {
-    color: '#fff',
+    color: '#000',
     fontSize: 16,
   },
 });
