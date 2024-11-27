@@ -7,7 +7,6 @@ import {
   StyleSheet,
   Modal,
   TextInput,
-  Button,
   Alert,
 } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
@@ -43,10 +42,17 @@ export default function Index() {
   const [isTimePickerVisible, setTimePickerVisible] = useState(false);
   const [newHabitTitle, setNewHabitTitle] = useState('');
   const [newHabitDescription, setNewHabitDescription] = useState('');
-  const [selectedColor, setSelectedColor] = useState(colors[0]);
-  const [selectedTime, setSelectedTime] = useState<string | undefined>(undefined);
+  const [selectedColor, setSelectedColor] = useState<string | undefined>();
+  const [selectedTime, setSelectedTime] = useState<string | undefined>();
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [editIndex, setEditIndex] = useState<number | null>(null);
+
+  // Verificar si el botón debe estar habilitado
+  const isSaveEnabled =
+    !!newHabitTitle && // Título no vacío
+    selectedDays.length > 0 && // Al menos un día seleccionado
+    !!selectedTime && // Recordatorio definido
+    !!selectedColor; // Color seleccionado
 
   const openModal = (index: number | null = null) => {
     if (index !== null) {
@@ -60,7 +66,7 @@ export default function Index() {
     } else {
       setNewHabitTitle('');
       setNewHabitDescription('');
-      setSelectedColor(colors[0]);
+      setSelectedColor(undefined);
       setSelectedTime(undefined);
       setSelectedDays([]);
       setEditIndex(null);
@@ -69,12 +75,14 @@ export default function Index() {
   };
 
   const addOrEditHabit = () => {
+    if (!isSaveEnabled) return;
+
     if (editIndex !== null) {
       const updatedHabits = [...habits];
       updatedHabits[editIndex] = {
         title: newHabitTitle,
         description: newHabitDescription,
-        color: selectedColor,
+        color: selectedColor!,
         reminderTime: selectedTime,
         days: selectedDays,
       };
@@ -85,7 +93,7 @@ export default function Index() {
         {
           title: newHabitTitle,
           description: newHabitDescription,
-          color: selectedColor,
+          color: selectedColor!,
           reminderTime: selectedTime,
           days: selectedDays,
         },
@@ -174,7 +182,7 @@ export default function Index() {
               value={newHabitDescription}
               onChangeText={setNewHabitDescription}
             />
-            <Text style={styles.daysLabel}>Lo voy hacer</Text>
+            <Text style={styles.daysLabel}>Lo voy a hacer</Text>
             <View style={styles.daysContainer}>
               {daysOfWeek.map((day) => (
                 <TouchableOpacity
@@ -216,8 +224,14 @@ export default function Index() {
                   <Text style={styles.buttonText}>Eliminar</Text>
                 </TouchableOpacity>
               )}
-              <TouchableOpacity style={styles.button} onPress={addOrEditHabit}>
-                <Text style={styles.buttonText}>Guardar</Text>
+              <TouchableOpacity
+                style={[styles.button, !isSaveEnabled && styles.buttonDisabled]}
+                onPress={addOrEditHabit}
+                disabled={!isSaveEnabled}
+              >
+                <Text style={[styles.buttonText, !isSaveEnabled && styles.buttonTextDisabled]}>
+                  Guardar
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -267,4 +281,6 @@ const styles = StyleSheet.create({
   modalButtons: { flexDirection: 'row', justifyContent: 'space-around', marginTop: 10 },
   button: { backgroundColor: '#fff', padding: 10, borderRadius: 8, marginHorizontal: 5 },
   buttonText: { color: '#000', fontSize: 16, fontWeight: 'bold', textAlign: 'center' },
+  buttonTextDisabled: { color: '#aaa' },
+  buttonDisabled: { backgroundColor: '#555' },
 });
