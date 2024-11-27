@@ -213,6 +213,7 @@ export default function HabitTracker({ title, description, color, onEdit }: Habi
                 }),
                 {}
               )}
+              maxDate={today.toISOString().split('T')[0]} // Restringe fechas futuras
               theme={{
                 backgroundColor: '#181818',
                 calendarBackground: '#181818',
